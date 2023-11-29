@@ -1,0 +1,22 @@
+// useUserData.js (Custom hook)
+import { useState, useEffect } from 'react';
+
+const useUserData = () => {
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    // Function to retrieve user data from local storage
+    const getUserDataFromLocalStorage = () => {
+      const storedUserData = localStorage.getItem('userData');
+      return storedUserData ? JSON.parse(storedUserData) : null;
+    };
+
+    // Retrieve user data from local storage when the hook is used
+    const data = getUserDataFromLocalStorage();
+    setUserData(data);
+  }, []); // Runs only once when the component mounts
+
+  return userData;
+};
+
+export default useUserData;

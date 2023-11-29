@@ -1,83 +1,81 @@
+import React, { useState, useEffect } from "react";
 import { Box, Typography, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { tokens } from "../../theme";
-import { mockDataInvoices } from "../../data/mockData";
 import Header from "../../components/Header";
+import supabase from "../../components/supabase/config";
 
-const Invoices = () => {
+const PaymentHistory = () => {
   const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+  const [payments, setPayments] = useState([]);
+  const colors = {
+    greenAccent: 400, // Replace with your actual color value
+    blueAccent: 400, // Replace with your actual color value
+    primary: 400, // Replace with your actual color value
+  };
+
   const columns = [
-    { field: "id", headerName: "ID" },
+    { field: "PaymentId", headerName: "Payment ID" },
     {
-      field: "name",
-      headerName: "Name",
-      flex: 1,
-      cellClassName: "name-column--cell",
-    },
-    {
-      field: "phone",
-      headerName: "Phone Number",
-      flex: 1,
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      flex: 1,
-    },
-    {
-      field: "cost",
-      headerName: "Cost",
+      field: "Value",
+      headerName: "Value",
       flex: 1,
       renderCell: (params) => (
-        <Typography color={colors.greenAccent[500]}>
-          ${params.row.cost}
+        <Typography style={{ color: colors.greenAccent }}>
+          {params.row.Value}
         </Typography>
       ),
     },
     {
-      field: "date",
-      headerName: "Date",
+      field: "PaymentType",
+      headerName: "Payment Type",
+      flex: 1,
+    },
+    {
+      field: "PaymentDate",
+      headerName: "Payment Date",
       flex: 1,
     },
   ];
 
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        const { data, error } = await supabase.from("PaymentHistory").select("*");
+        if (error) {
+          throw new Error(error.message); // Throw error to trigger catch block
+        }
+        console.log("Fetched data:", data); // Log fetched data
+       payments(data || {})
+      } catch (error) {
+        console.error("Error fetching payments:", error.message);
+      }
+    };
+
+    fetchPayments();
+  }, []);
+
   return (
     <Box m="20px">
-      <Header title="INVOICES" subtitle="List of Invoice Balances" />
+      <Header title="PAYMENT HISTORY" subtitle="List of Payment History" />
       <Box
         m="40px 0 0 0"
         height="75vh"
         sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-          },
-          "& .name-column--cell": {
-            color: colors.greenAccent[300],
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: colors.blueAccent[700],
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: colors.primary[400],
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            backgroundColor: colors.blueAccent[700],
-          },
-          "& .MuiCheckbox-root": {
-            color: `${colors.greenAccent[200]} !important`,
-          },
+          // Your existing styles
         }}
       >
-        <DataGrid checkboxSelection rows={mockDataInvoices} columns={columns} />
+        <DataGrid
+          checkboxSelection
+          rows={payments}
+          columns={columns}
+          loading={!payments.length}
+          components={{
+            NoRowsOverlay: () => <Typography>No data available</Typography>,
+          }}
+        />
       </Box>
     </Box>
   );
 };
 
-export default Invoices;
+export default PaymentHistory;

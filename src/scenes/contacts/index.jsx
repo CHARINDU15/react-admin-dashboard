@@ -1,97 +1,63 @@
-import { Box } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, useTheme } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { tokens } from "../../theme";
-import { mockDataContacts } from "../../data/mockData";
 import Header from "../../components/Header";
-import { useTheme } from "@mui/material";
+import supabase from "../../components/supabase/config";
+import { tokens } from "../../theme";
 
 const Contacts = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
+  const [contacts, setContacts] = useState([]);
+  const [error, setError] = useState(null);
 
   const columns = [
-    { field: "id", headerName: "ID", flex: 0.5 },
-    { field: "registrarId", headerName: "Registrar ID" },
-    {
-      field: "name",
-      headerName: "Name",
-      flex: 1,
-      cellClassName: "name-column--cell",
-    },
-    {
-      field: "age",
-      headerName: "Age",
-      type: "number",
-      headerAlign: "left",
-      align: "left",
-    },
-    {
-      field: "phone",
-      headerName: "Phone Number",
-      flex: 1,
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      flex: 1,
-    },
-    {
-      field: "address",
-      headerName: "Address",
-      flex: 1,
-    },
-    {
-      field: "city",
-      headerName: "City",
-      flex: 1,
-    },
-    {
-      field: "zipCode",
-      headerName: "Zip Code",
-      flex: 1,
-    },
+    { field: "ServicePackageID", headerName: "Package ID", flex: 0.5 },
+    { field: "service_pack_name", headerName: "Name", flex: 1, cellClassName: "name-column--cell" },
+    { field: "ServicePackagePrice", headerName: "Price", type: "number", headerAlign: "left", align: "left" },
+    { field: "Features", headerName: "Features", flex: 1 },
+    { field: "service_pack_dis", headerName: "Description", flex: 1 },
+    { field: "type", headerName: "Type", flex: 1 },
   ];
+
+  useEffect(() => {
+    async function fetchServicePackages() {
+      try {
+        const { data, error } = await supabase
+          .from('ServicePackages')
+          .select('*')
+          .eq('Vendor_ID', '89b00430-a8d9-4ab7-9e2f-b5a3d6b29500');
+
+        if (error) {
+          setError(error.message);
+        } else {
+          // Add a unique id to each row
+          const rowsWithIds = data.map((row, index) => ({ id: index + 1, ...row }));
+          setContacts(rowsWithIds);
+        }
+      } catch (error) {
+        setError(error.message);
+      }
+    }
+
+    fetchServicePackages();
+  }, []); // Empty dependency array ensures the effect runs only once when the component mounts
 
   return (
     <Box m="20px">
       <Header
-        title="CONTACTS"
-        subtitle="List of Contacts for Future Reference"
+        title="PACKAGES"
+        subtitle="List of Packages for Future Reference"
       />
       <Box
         m="40px 0 0 0"
         height="75vh"
         sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-          },
-          "& .name-column--cell": {
-            color: colors.greenAccent[300],
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: colors.blueAccent[700],
-            borderBottom: "none",
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: colors.primary[400],
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            backgroundColor: colors.blueAccent[700],
-          },
-          "& .MuiCheckbox-root": {
-            color: `${colors.greenAccent[200]} !important`,
-          },
-          "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-            color: `${colors.grey[100]} !important`,
-          },
+          // Your existing styles
         }}
       >
         <DataGrid
-          rows={mockDataContacts}
+          rows={contacts}
           columns={columns}
           components={{ Toolbar: GridToolbar }}
         />

@@ -1,19 +1,43 @@
+import React from "react";
 import { Box, Button, TextField } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Header from "../../components/Header";
+import supabase from "../../components/supabase/config";
 
 const Form = () => {
   const isNonMobile = useMediaQuery("(min-width:600px)");
 
-  const handleFormSubmit = (values) => {
-    console.log(values);
+  const handleFormSubmit = async (values) => {
+    try {
+      // Insert data into the ServicePackages table
+      const { data, error } = await supabase
+        .from("ServicePackages")
+        .insert([
+          {
+            ServicePackageID: values.Pid,
+            ServicePackagePrice: parseFloat(values.Pprice),
+            Features: JSON.parse(values.Pfeatures), // Assuming Pfeatures is a JSON string
+            service_pack_name: values.Pname,
+            service_pack_dis: values.Pdes,
+            type: values.Ptype,
+          },
+        ]);
+
+      if (error) {
+        console.error("Error inserting data:", error.message);
+      } else {
+        console.log("Data inserted successfully:", data);
+      }
+    } catch (error) {
+      console.error("Error inserting data:", error.message);
+    }
   };
 
   return (
     <Box m="20px">
-      <Header title="CREATE USER" subtitle="Create a New User Profile" />
+      <Header title="CREATE PACKAGE" subtitle="Create a New Package" />
 
       <Formik
         onSubmit={handleFormSubmit}
@@ -41,84 +65,97 @@ const Form = () => {
                 fullWidth
                 variant="filled"
                 type="text"
-                label="First Name"
+                label="Package Name"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.firstName}
-                name="firstName"
-                error={!!touched.firstName && !!errors.firstName}
-                helperText={touched.firstName && errors.firstName}
+                value={values.Pname}
+                name="Pname"
+                error={!!touched.Pname && !!errors.Pname}
+                helperText={touched.Pname && errors.Pname}
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Last Name"
+                label="Package Type"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.lastName}
-                name="lastName"
-                error={!!touched.lastName && !!errors.lastName}
-                helperText={touched.lastName && errors.lastName}
+                value={values.Ptype}
+                name="Ptype"
+                error={!!touched.Ptype && !!errors.Ptype}
+                helperText={touched.Ptype && errors.Ptype}
                 sx={{ gridColumn: "span 2" }}
               />
               <TextField
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Email"
+                label="Description"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.email}
-                name="email"
-                error={!!touched.email && !!errors.email}
-                helperText={touched.email && errors.email}
+                value={values.Pdes}
+                name="Pdes"
+                error={!!touched.Pdes && !!errors.Pdes}
+                helperText={touched.Pdes && errors.Pdes}
                 sx={{ gridColumn: "span 4" }}
               />
               <TextField
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Contact Number"
+                label="Package ID"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.contact}
-                name="contact"
-                error={!!touched.contact && !!errors.contact}
-                helperText={touched.contact && errors.contact}
+                value={values.Pid}
+                name="Pid"
+                error={!!touched.Pid && !!errors.Pid}
+                helperText={touched.Pid && errors.Pid}
                 sx={{ gridColumn: "span 4" }}
               />
               <TextField
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Address 1"
+                label="Price"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.address1}
-                name="address1"
-                error={!!touched.address1 && !!errors.address1}
-                helperText={touched.address1 && errors.address1}
+                value={values.Pprice}
+                name="Pprice"
+                error={!!touched.Pprice && !!errors.Pprice}
+                helperText={touched.Pprice && errors.Pprice}
                 sx={{ gridColumn: "span 4" }}
               />
               <TextField
                 fullWidth
                 variant="filled"
                 type="text"
-                label="Address 2"
+                label="Available Dates"
                 onBlur={handleBlur}
                 onChange={handleChange}
-                value={values.address2}
-                name="address2"
-                error={!!touched.address2 && !!errors.address2}
-                helperText={touched.address2 && errors.address2}
+                value={values.Pdates}
+                name="Pdates"
+                error={!!touched.Pdates && !!errors.Pdates}
+                helperText={touched.Pdates && errors.Pdates}
+                sx={{ gridColumn: "span 4" }}
+              />
+              <TextField
+                fullWidth
+                variant="filled"
+                type="text"
+                label="Features (JSON)"
+                onBlur={handleBlur}
+                onChange={handleChange}
+                value={values.Pfeatures}
+                name="Pfeatures"
+                error={!!touched.Pfeatures && !!errors.Pfeatures}
+                helperText={touched.Pfeatures && errors.Pfeatures}
                 sx={{ gridColumn: "span 4" }}
               />
             </Box>
             <Box display="flex" justifyContent="end" mt="20px">
               <Button type="submit" color="secondary" variant="contained">
-                Create New User
+                Create New Package
               </Button>
             </Box>
           </form>
@@ -128,27 +165,24 @@ const Form = () => {
   );
 };
 
-const phoneRegExp =
-  /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
-
 const checkoutSchema = yup.object().shape({
-  firstName: yup.string().required("required"),
-  lastName: yup.string().required("required"),
-  email: yup.string().email("invalid email").required("required"),
-  contact: yup
-    .string()
-    .matches(phoneRegExp, "Phone number is not valid")
-    .required("required"),
-  address1: yup.string().required("required"),
-  address2: yup.string().required("required"),
+  Pname: yup.string().required("required"),
+  Ptype: yup.string().required("required"),
+  Pdes: yup.string().required("required"),
+  Pid: yup.string().required("required"),
+  Pprice: yup.string().required("required"),
+  Pdates: yup.string().required("required"),
+  Pfeatures: yup.string().required("required"),
 });
+
 const initialValues = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  contact: "",
-  address1: "",
-  address2: "",
+  Pname: "",
+  Ptype: "",
+  Pdes: "",
+  Pid: "",
+  Pprice: "",
+  Pdates: "",
+  Pfeatures: "",
 };
 
 export default Form;
